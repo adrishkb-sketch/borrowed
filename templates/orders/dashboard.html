@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Owner Dashboard</h1>
+
+<div class="earnings-box">
+  <h3>Total Earnings</h3>
+  <h2>₹{{ earnings }}</h2>
+</div>
+
+<h2>Order Requests</h2>
+
+{% for data in requests %}
+{% set order = data.order %}
+{% set borrower = data.borrower %}
+{% set item = data.item %}
+{% set rating = data.rating %}
+
+<div class="order-card">
+  <p>
+    <b>Product:</b>
+    <a href="/item/{{ item.id }}">{{ item.name }}</a>
+  </p>
+
+  <p><b>Borrower:</b> {{ borrower.full_name }}</p>
+  <p><b>Contact:</b> {{ borrower.phone }}</p>
+
+  <p><b>Borrower Rating:</b>
+    {% if rating == "No ratings" %}
+      No ratings yet
+    {% else %}
+      ⭐ {{ rating }}/5
+    {% endif %}
+  </p>
+
+  <p><b>Amount:</b> ₹{{ order.amount }}</p>
+  <p><b>Status:</b> {{ order.status }}</p>
+
+  <!-- APPROVE / DECLINE -->
+  {% if order.status == "pending" %}
+    <a class="btn success" href="/order/{{ order.id }}/approve">Approve</a>
+    <a class="btn danger" href="/order/{{ order.id }}/decline">Decline</a>
+  {% endif %}
+
+  <!-- ⭐ REVIEW BORROWER (FIXED) -->
+  {% if data.can_review_user %}
+    <a class="btn" href="/review-user/{{ order.id }}">
+      ⭐ Review Borrower
+    </a>
+  {% endif %}
+</div>
+
+{% else %}
+<p>No order requests yet.</p>
+{% endfor %}
+
+{% endblock %}

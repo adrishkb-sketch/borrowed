@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Rate Borrower</h2>
+
+<form method="POST" class="form-card">
+  <label>Rating</label>
+  <select name="rating" required>
+    <option value="5">★★★★★</option>
+    <option value="4">★★★★</option>
+    <option value="3">★★★</option>
+    <option value="2">★★</option>
+    <option value="1">★</option>
+  </select>
+
+  <textarea name="comment" placeholder="Your experience"></textarea>
+
+  <button class="btn">Submit Review</button>
+</form>
+
+{% endblock %}

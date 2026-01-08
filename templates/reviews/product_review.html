@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Rate & Review Product</h2>
+
+<form method="POST" enctype="multipart/form-data" class="form-card">
+  <label>Rating</label>
+  <select name="rating" required>
+    <option value="5">★★★★★</option>
+    <option value="4">★★★★</option>
+    <option value="3">★★★</option>
+    <option value="2">★★</option>
+    <option value="1">★</option>
+  </select>
+
+  <textarea name="comment" placeholder="Write your review"></textarea>
+
+  <input type="file" name="image">
+
+  <button class="btn">Submit Review</button>
+</form>
+
+{% endblock %}

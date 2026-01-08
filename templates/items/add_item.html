@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Add Item for Borrowing</h1>
+
+<form method="POST" enctype="multipart/form-data" class="form-card">
+
+  <input type="text" name="name" placeholder="Item Name" required>
+
+  <textarea name="description" placeholder="Description" required></textarea>
+
+  <input type="number" name="rate" placeholder="Rate per day (₹)" required>
+
+  <!-- 🔢 NEW FIELD -->
+  <input type="number" name="quantity" placeholder="Total Quantity Available"
+         min="1" required>
+
+  <input type="file" name="image" required>
+
+  <button class="btn">Add Item</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Admin Dashboard</h1>
+
+<h2>Pending Payout Requests</h2>
+
+{% for p in payouts %}
+<div class="order-card">
+  <p><b>User ID:</b> {{ p.user_id }}</p>
+  <p><b>UPI:</b> {{ p.upi_id }}</p>
+  <p><b>Amount:</b> ₹{{ p.amount }}</p>
+  <p><b>Requested:</b> {{ p.created_at }}</p>
+
+  <a class="btn success" href="/admin/approve-payout/{{ p.id }}">Approve</a>
+</div>
+{% else %}
+<p>No pending payouts</p>
+{% endfor %}
+
+<hr>
+
+<h2>All Users</h2>
+
+{% for u in users %}
+<div class="order-card">
+  <p><b>{{ u.email }}</b></p>
+  <p>Balance: ₹{{ u.balance }}</p>
+
+  {% if not u.is_banned %}
+  <form method="POST" action="/admin/ban-user/{{ u.id }}">
+    <input type="number" name="days" placeholder="Ban days" required>
+    <input type="text" name="reason" placeholder="Reason" required>
+    <button class="btn danger">Ban User</button>
+  </form>
+  {% else %}
+  <p class="declined">🚫 Banned until {{ u.ban_until }}</p>
+  {% endif %}
+</div>
+{% endfor %}
+
+{% endblock %}

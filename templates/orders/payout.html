@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Request Payout</h1>
+
+<div class="order-card">
+  <p><b>Current Balance:</b> ₹{{ current_user.balance }}</p>
+
+  <form method="POST">
+    <input type="text" name="upi" placeholder="Your UPI ID" required>
+    <input type="number" name="amount" placeholder="Amount" required>
+    <button class="btn">Request Payout</button>
+  </form>
+
+  <p class="pending">⏳ Waiting for admin approval</p>
+</div>
+
+<h2>Recent Payouts</h2>
+
+{% for p in payouts %}
+<div class="order-card">
+  <p><b>Amount:</b> ₹{{ p.amount }}</p>
+  <p><b>Status:</b> {{ p.status }}</p>
+  <p><b>Date:</b> {{ p.created_at }}</p>
+</div>
+{% endfor %}
+
+{% endblock %}

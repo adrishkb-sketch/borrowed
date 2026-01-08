@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register – Borrowed</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="auth-split">
+
+  <!-- LEFT INFO PANEL -->
+  <div class="auth-info">
+    <h1>Borrowed</h1>
+    <p class="tagline">
+      A smarter way to share resources.
+    </p>
+
+    <ul>
+      <li>🔐 Secure login & verification</li>
+      <li>📅 Flexible date-based rentals</li>
+      <li>⭐ Community trust system</li>
+      <li>🚚 Seamless borrowing experience</li>
+    </ul>
+  </div>
+
+  <!-- RIGHT REGISTER CARD -->
+  <div class="auth-card">
+    <h2>Create Account</h2>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <p class="error">{{ messages[0] }}</p>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password (min 8 chars)" required>
+
+      <button class="btn">Register</button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a href="/login">Login</a>
+    </p>
+  </div>
+
+</body>
+</html>

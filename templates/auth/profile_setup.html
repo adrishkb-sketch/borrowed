@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card">
+  <h2>Complete Your Profile</h2>
+  <form method="POST">
+    <input type="text" name="full_name" placeholder="Full Name" required>
+    <input type="tel" name="phone" placeholder="Phone Number" required>
+    <input type="text" name="address" placeholder="Address" id="address" required>
+    <button>Continue</button>
+  </form>
+</div>
+{% endblock %}

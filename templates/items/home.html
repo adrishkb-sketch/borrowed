@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="page-title">Available Items for Borrowing</h1>
+
+<div class="items-grid">
+  {% for data in items %}
+  {% set item = data.item %}
+
+  <div class="item-card">
+    <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+         onerror="this.src='https://via.placeholder.com/300x200'">
+
+    <div class="item-info">
+      <h3>{{ item.name }}</h3>
+      <p>{{ item.description }}</p>
+
+      <!-- AVAILABILITY STATUS -->
+      {% if data.available > 0 %}
+        <p class="in-stock">
+          Available: {{ data.available }}
+        </p>
+      {% else %}
+        <p class="out-stock">
+          ❌ Out of stock<br>
+          <small>
+            Available on {{ data.next_available }}
+          </small>
+        </p>
+      {% endif %}
+
+      <div class="item-footer">
+        <span>₹{{ item.rate_per_day }}/day</span>
+        <a class="btn" href="/item/{{ item.id }}">View</a>
+      </div>
+    </div>
+  </div>
+
+  {% endfor %}
+</div>
+
+{% endblock %}

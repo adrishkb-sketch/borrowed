@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>My Orders</h1>
+
+{% for data in orders %}
+{% set order = data.order %}
+{% set item = data.item %}
+{% set owner = data.owner %}
+{% set can_review = data.can_review %}
+
+<div class="order-card">
+  <p>
+    <b>Product:</b>
+    <a href="/item/{{ item.id }}">{{ item.name }}</a>
+  </p>
+
+  <p><b>Owner:</b> {{ owner.full_name }}</p>
+  <p><b>Contact:</b> {{ owner.phone }}</p>
+
+  <p><b>From:</b> {{ order.start_date }}</p>
+  <p><b>To:</b> {{ order.end_date }}</p>
+  <p><b>Amount:</b> ₹{{ order.amount }}</p>
+
+  {% if order.status == "approved" %}
+    <p class="approved">✅ Order Approved – Delivery soon</p>
+  {% elif order.status == "declined" %}
+    <p class="declined">❌ Owner unavailable – Refund in 24 hours</p>
+  {% else %}
+    <p class="pending">⏳ Waiting for owner approval</p>
+  {% endif %}
+
+  <!-- ⭐ REVIEW PRODUCT -->
+  {% if can_review %}
+    <a class="btn" href="/review-product/{{ order.id }}">
+      ⭐ Review Product
+    </a>
+  {% endif %}
+</div>
+
+{% else %}
+<p>No orders yet.</p>
+{% endfor %}
+
+{% endblock %}

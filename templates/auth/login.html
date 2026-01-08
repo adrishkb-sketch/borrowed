@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login – Borrowed</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="auth-split">
+
+  <!-- LEFT INFO PANEL -->
+  <div class="auth-info">
+    <h1>Borrowed</h1>
+    <p class="tagline">
+      Borrow what you need.
+      Lend what you don’t.
+    </p>
+
+    <ul>
+      <li>📦 Rent items for a few days</li>
+      <li>🤝 Trusted peer-to-peer marketplace</li>
+      <li>⭐ Ratings & reviews for safety</li>
+      <li>💰 Pay only for what you use</li>
+    </ul>
+  </div>
+
+  <!-- RIGHT LOGIN CARD -->
+  <div class="auth-card">
+    <h2>Login</h2>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <p class="error">{{ messages[0] }}</p>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" required>
+
+      <button class="btn">Login</button>
+    </form>
+
+    <p class="auth-footer">
+      New here? <a href="/register">Create an account</a>
+    </p>
+  </div>
+
+</body>
+</html>

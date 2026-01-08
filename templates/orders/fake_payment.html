@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="payment-card">
+  <h2>Payment Summary</h2>
+
+  <p><b>Item:</b> {{ item.name }}</p>
+  <p><b>From:</b> {{ start }}</p>
+  <p><b>To:</b> {{ end }}</p>
+  <p><b>Total:</b> ₹{{ amount }}</p>
+
+  <hr>
+
+  <button class="btn big-btn" onclick="confirmPayment()">
+    Pay Now (Fake)
+  </button>
+
+  <p id="status"></p>
+</div>
+
+<script>
+function confirmPayment() {
+  document.getElementById("status").innerHTML =
+    "✅ Payment successful!<br>Waiting for owner approval...";
+}
+</script>
+
+{% endblock %}
