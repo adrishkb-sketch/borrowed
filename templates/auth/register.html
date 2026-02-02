@@ -15,7 +15,7 @@
     </p>
 
     <ul>
-      <li>🔐 Secure login & verification</li>
+      <li>🔐 Secure login & email verification</li>
       <li>📅 Flexible date-based rentals</li>
       <li>⭐ Community trust system</li>
       <li>🚚 Seamless borrowing experience</li>
@@ -28,7 +28,9 @@
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <p class="error">{{ messages[0] }}</p>
+        {% for message in messages %}
+          <p class="error">{{ message }}</p>
+        {% endfor %}
       {% endif %}
     {% endwith %}
 
