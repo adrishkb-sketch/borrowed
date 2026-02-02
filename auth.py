@@ -10,8 +10,8 @@ auth = Blueprint('auth', __name__)
 
 # ---------------- TOKEN UTILS ----------------
 def generate_verification_token(email):
-    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    return s.dumps(email, salt="email-verify")
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt="email-verify")
 
 
 def send_verification_email(email, token):
@@ -26,17 +26,19 @@ def send_verification_email(email, token):
     msg.body = f"""
 Hi,
 
-Please verify your email:
+Welcome to Borrowed 👋
+
+Please verify your email by clicking the link below:
+
 {verify_link}
+
+This link expires in 1 hour.
+
+If you did not create this account, you can safely ignore this email.
 """
 
-    try:
-        current_app.extensions["mail"].send(msg)
-    except Exception as e:
-        # 🔥 THIS WILL SHOW THE REAL ERROR IN RENDER LOGS
-        print("EMAIL ERROR:", e)
-        raise
-
+    # ✅ Correct, production-safe way (no circular import)
+    current_app.extensions["mail"].send(msg)
 
 
 # ---------------- REGISTER ----------------
@@ -54,8 +56,12 @@ def register():
             flash("Email already exists")
             return redirect(url_for('auth.register'))
 
-        hashed = generate_password_hash(password)
-        user = User(email=email, password=hashed, verified=False)
+        hashed_password = generate_password_hash(password)
+        user = User(
+            email=email,
+            password=hashed_password,
+            verified=False
+        )
 
         db.session.add(user)
         db.session.commit()
@@ -72,10 +78,14 @@ def register():
 # ---------------- VERIFY EMAIL ----------------
 @auth.route('/verify/<token>')
 def verify(token):
-    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
     try:
-        email = s.loads(token, salt="email-verify", max_age=3600)
+        email = serializer.loads(
+            token,
+            salt="email-verify",
+            max_age=3600  # 1 hour
+        )
     except SignatureExpired:
         return "Verification link expired."
     except BadSignature:
@@ -101,14 +111,17 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
+        # ❌ Invalid credentials
         if not user or not check_password_hash(user.password, password):
             flash("Invalid email or password")
             return redirect(url_for('auth.login'))
 
+        # ❌ Email not verified
         if not user.verified:
             flash("Please verify your email first")
             return redirect(url_for('auth.login'))
 
+        # 🚫 User banned
         if user.is_banned:
             if user.ban_until and datetime.utcnow() > user.ban_until:
                 user.is_banned = False
