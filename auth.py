@@ -1,13 +1,55 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from models import db, User
-import uuid
 from datetime import datetime
+import requests
+import os
 
 auth = Blueprint('auth', __name__)
 
-verification_tokens = {}
+# ---------------- TOKEN UTILS ----------------
+def generate_verification_token(email):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt="email-verify")
+
+
+def send_verification_email(email, token):
+    url = "https://api.brevo.com/v3/smtp/email"
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "api-key": os.environ.get("BREVO_API_KEY")
+    }
+
+    verify_link = f"https://borrowed.onrender.com/verify/{token}"
+
+    payload = {
+        "sender": {
+            "email": "no-reply@borrowed.com",
+            "name": "Borrowed"
+        },
+        "to": [{"email": email}],
+        "subject": "Verify your email",
+        "htmlContent": f"""
+            <h3>Welcome to Borrowed 👋</h3>
+            <p>Please verify your email by clicking the button below:</p>
+            <a href="{verify_link}"
+               style="padding:10px 15px;
+                      background:#2563eb;
+                      color:#fff;
+                      text-decoration:none;
+                      border-radius:5px;">
+                Verify Email
+            </a>
+            <p>This link expires in 1 hour.</p>
+        """
+    }
+
+    requests.post(url, json=payload, headers=headers)
+
 
 # ---------------- REGISTER ----------------
 @auth.route('/register', methods=['GET', 'POST'])
@@ -25,15 +67,14 @@ def register():
             return redirect(url_for('auth.register'))
 
         hashed = generate_password_hash(password)
-        user = User(email=email, password=hashed)
+        user = User(email=email, password=hashed, email_verified=False)
         db.session.add(user)
         db.session.commit()
 
-        token = str(uuid.uuid4())
-        verification_tokens[token] = user.id
+        token = generate_verification_token(email)
+        send_verification_email(email, token)
 
-        print(f"🔗 VERIFY LINK: http://127.0.0.1:5000/verify/{token}")
-
+        flash("Verification email sent. Please check your inbox.")
         return render_template('auth/verify.html', email=email)
 
     return render_template('auth/register.html')
@@ -42,18 +83,31 @@ def register():
 # ---------------- VERIFY EMAIL ----------------
 @auth.route('/verify/<token>')
 def verify(token):
-    user_id = verification_tokens.get(token)
-    if not user_id:
-        return "Invalid or expired link"
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
-    user = User.query.get(user_id)
-    user.verified = True
+    try:
+        email = serializer.loads(
+            token,
+            salt="email-verify",
+            max_age=3600  # 1 hour
+        )
+    except SignatureExpired:
+        return "Verification link expired."
+    except BadSignature:
+        return "Invalid verification link."
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return "User not found."
+
+    user.email_verified = True
     db.session.commit()
 
+    flash("Email verified successfully. Please log in.")
     return redirect(url_for('auth.login'))
 
 
-# ---------------- LOGIN (UPDATED) ----------------
+# ---------------- LOGIN ----------------
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -68,13 +122,12 @@ def login():
             return redirect(url_for('auth.login'))
 
         # ❌ Email not verified
-        if not user.verified:
+        if not user.email_verified:
             flash("Please verify your email first")
             return redirect(url_for('auth.login'))
 
-        # 🚫 User is banned
+        # 🚫 User banned
         if user.is_banned:
-            # If ban expired, auto-unban
             if user.ban_until and datetime.utcnow() > user.ban_until:
                 user.is_banned = False
                 user.ban_reason = None
@@ -87,7 +140,7 @@ def login():
                 )
                 return redirect(url_for('auth.login'))
 
-        # ✅ Login allowed
+        # ✅ Login
         login_user(user)
 
         if user.first_login:
