@@ -2,15 +2,12 @@
 
 {% block content %}
 <div class="auth-card">
-  <h2>Verify your email</h2>
+  <h2>Account created</h2>
 
-  <p>We’ve sent a verification link to:</p>
-  <p><b>{{ email }}</b></p>
+  <p>Your account has been created successfully.</p>
 
-  <p>Please check your inbox (and spam folder).</p>
+  <p>You can now log in and start using Borrowed.</p>
 
-  <p style="font-size: 14px; color: #666;">
-    You must verify your email before logging in.
-  </p>
+  <a href="/login" class="btn">Go to Login</a>
 </div>
 {% endblock %}
