@@ -14,6 +14,15 @@ def generate_verification_token(email):
     return serializer.dumps(email, salt="email-verify")
 
 
+import threading
+from flask_mail import Message
+from flask import current_app
+
+def _send_email_async(app, msg):
+    with app.app_context():
+        app.extensions["mail"].send(msg)
+
+
 def send_verification_email(email, token):
     verify_link = f"{current_app.config['APP_URL']}/verify/{token}"
 
@@ -32,15 +41,15 @@ Please verify your email by clicking the link below:
 
 {verify_link}
 
-If the email does not arrive immediately, please wait a minute or check spam.
+If you did not create this account, you can ignore this email.
 """
 
-    try:
-        # 🔑 prevent long blocking
-        current_app.extensions["mail"].send(msg)
-    except Exception as e:
-        # 🔕 NEVER crash request
-        print("EMAIL SEND FAILED (non-fatal):", e)
+    # 🚀 SEND IN BACKGROUND (NON-BLOCKING)
+    thread = threading.Thread(
+        target=_send_email_async,
+        args=(current_app._get_current_object(), msg)
+    )
+    thread.start()
 
 
 
