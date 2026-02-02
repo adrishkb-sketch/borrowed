@@ -1,57 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
-from flask_mail import Message
 from models import db, User
 from datetime import datetime
 
 auth = Blueprint('auth', __name__)
-
-# ---------------- TOKEN UTILS ----------------
-def generate_verification_token(email):
-    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    return serializer.dumps(email, salt="email-verify")
-
-
-import threading
-from flask_mail import Message
-from flask import current_app
-
-def _send_email_async(app, msg):
-    with app.app_context():
-        app.extensions["mail"].send(msg)
-
-
-def send_verification_email(email, token):
-    verify_link = f"{current_app.config['APP_URL']}/verify/{token}"
-
-    msg = Message(
-        subject="Verify your email",
-        sender=current_app.config['MAIL_USERNAME'],
-        recipients=[email]
-    )
-
-    msg.body = f"""
-Hi,
-
-Welcome to Borrowed 👋
-
-Please verify your email by clicking the link below:
-
-{verify_link}
-
-If you did not create this account, you can ignore this email.
-"""
-
-    # 🚀 SEND IN BACKGROUND (NON-BLOCKING)
-    thread = threading.Thread(
-        target=_send_email_async,
-        args=(current_app._get_current_object(), msg)
-    )
-    thread.start()
-
-
 
 # ---------------- REGISTER ----------------
 @auth.route('/register', methods=['GET', 'POST'])
@@ -69,49 +22,21 @@ def register():
             return redirect(url_for('auth.register'))
 
         hashed_password = generate_password_hash(password)
+
+        # ✅ VERIFIED = TRUE (NO EMAIL VERIFICATION)
         user = User(
             email=email,
             password=hashed_password,
-            verified=False
+            verified=True
         )
 
         db.session.add(user)
         db.session.commit()
 
-        token = generate_verification_token(email)
-        send_verification_email(email, token)
-
-        flash("Verification email sent. Please check your inbox.")
-        return render_template('auth/verify.html', email=email)
+        flash("Account created successfully. You can now log in.")
+        return redirect(url_for('auth.login'))
 
     return render_template('auth/register.html')
-
-
-# ---------------- VERIFY EMAIL ----------------
-@auth.route('/verify/<token>')
-def verify(token):
-    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-
-    try:
-        email = serializer.loads(
-            token,
-            salt="email-verify",
-            max_age=3600  # 1 hour
-        )
-    except SignatureExpired:
-        return "Verification link expired."
-    except BadSignature:
-        return "Invalid verification link."
-
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return "User not found."
-
-    user.verified = True
-    db.session.commit()
-
-    flash("Email verified successfully. Please log in.")
-    return redirect(url_for('auth.login'))
 
 
 # ---------------- LOGIN ----------------
@@ -126,11 +51,6 @@ def login():
         # ❌ Invalid credentials
         if not user or not check_password_hash(user.password, password):
             flash("Invalid email or password")
-            return redirect(url_for('auth.login'))
-
-        # ❌ Email not verified
-        if not user.verified:
-            flash("Please verify your email first")
             return redirect(url_for('auth.login'))
 
         # 🚫 User banned
