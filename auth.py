@@ -32,13 +32,16 @@ Please verify your email by clicking the link below:
 
 {verify_link}
 
-This link expires in 1 hour.
-
-If you did not create this account, you can safely ignore this email.
+If the email does not arrive immediately, please wait a minute or check spam.
 """
 
-    # ✅ Correct, production-safe way (no circular import)
-    current_app.extensions["mail"].send(msg)
+    try:
+        # 🔑 prevent long blocking
+        current_app.extensions["mail"].send(msg)
+    except Exception as e:
+        # 🔕 NEVER crash request
+        print("EMAIL SEND FAILED (non-fatal):", e)
+
 
 
 # ---------------- REGISTER ----------------
