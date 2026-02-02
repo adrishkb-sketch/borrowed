@@ -20,6 +20,11 @@ app.config['SECRET_KEY'] = os.environ.get(
     "SECRET_KEY", "borrowed-secret-key"
 )
 
+# ✅ ADD THIS (IMPORTANT)
+app.config['APP_URL'] = os.environ.get(
+    "APP_URL", "http://127.0.0.1:5000"
+)
+
 # Database: PostgreSQL in production, SQLite locally
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     "SQLALCHEMY_DATABASE_URI",
@@ -28,7 +33,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ---------------- MAIL (SAFE DEFAULTS) ----------------
+# ---------------- MAIL CONFIG ----------------
 app.config['MAIL_SERVER'] = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
 app.config['MAIL_PORT'] = int(os.environ.get("MAIL_PORT", 587))
 app.config['MAIL_USE_TLS'] = True
