@@ -26,19 +26,17 @@ def send_verification_email(email, token):
     msg.body = f"""
 Hi,
 
-Welcome to Borrowed 👋
-
-Please verify your email by clicking the link below:
-
+Please verify your email:
 {verify_link}
-
-This link expires in 1 hour.
-
-If you did not create this account, you can ignore this email.
 """
 
-    # ✅ NO circular import
-    current_app.extensions["mail"].send(msg)
+    try:
+        current_app.extensions["mail"].send(msg)
+    except Exception as e:
+        # 🔥 THIS WILL SHOW THE REAL ERROR IN RENDER LOGS
+        print("EMAIL ERROR:", e)
+        raise
+
 
 
 # ---------------- REGISTER ----------------
